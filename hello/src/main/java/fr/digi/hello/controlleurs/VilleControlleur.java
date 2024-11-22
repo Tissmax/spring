@@ -1,9 +1,10 @@
 package fr.digi.hello.controlleurs;
 
 import fr.digi.hello.entites.Ville;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import fr.digi.hello.service.VilleService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -11,14 +12,14 @@ import java.util.List;
 @RequestMapping("/villes")
 public class VilleControlleur {
 
+    private final VilleService villeService;
+
+    public VilleControlleur(VilleService villeService) {
+        this.villeService = villeService;
+    }
+
     @GetMapping
     public List<Ville> getVilles(){
-        return List.of(
-                new Ville("Paris", 2_140_526),
-                new Ville("Marseille", 870_018),
-                new Ville("Lyon", 515_695),
-                new Ville("Toulouse", 479_553),
-                new Ville("Nice", 342_522)
-        );
+        return villeService.getVilles();
     }
 }

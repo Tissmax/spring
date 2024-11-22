@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/hello")
 public class HelloControlleur {
 
-    HelloService helloService = new HelloService();
+    HelloService helloService;
+
+    public HelloControlleur(HelloService helloService) {
+        this.helloService = helloService;
+    }
 
     @GetMapping
     public String sayHello() {
