@@ -3,6 +3,7 @@ package fr.digi.hello.entites;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "ville")
@@ -10,12 +11,11 @@ public class Ville {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Min(value = 0)
     private Integer id;
     @NotNull
-    @Min(value = 2)
+    @Size(min = 3, max = 50)
     private String nom;
-    @Min(value = 1)
+    @Min(0)
     private int nbHabitants;
 
     public Ville() {
