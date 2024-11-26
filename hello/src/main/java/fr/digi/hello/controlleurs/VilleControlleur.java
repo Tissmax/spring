@@ -17,21 +17,25 @@ public class VilleControlleur {
 
     @Autowired
     private final VilleService villeService;
-    private final List<Ville> villes;
+    private List<Ville> villes;
 
     public VilleControlleur(VilleService villeService) {
         this.villeService = villeService;
-        this.villes = villeService.getVilles();
+    }
+
+    private List<Ville> updateList() {
+        return villes = villeService.getVilles();
     }
 
     @GetMapping
     public ResponseEntity<List<Ville>> getVilles() {
+        updateList();
         return ResponseEntity.ok(villes);
     }
 
     @GetMapping(value = "/id:{id}")
     public ResponseEntity<String> getVillesById(@PathVariable Integer id) {
-
+        updateList();
         if (villeService.getVilleById(id) != null) {
             return ResponseEntity.ok(villes.get(id).toString());
         }
@@ -39,7 +43,7 @@ public class VilleControlleur {
     }
     @GetMapping("/nom:{name}")
     public ResponseEntity<Object> getVillesByName(@PathVariable String name) {
-
+        updateList();
         if (villeService.getVilleByNom(name) != null) {
             return ResponseEntity.ok(villes.stream()
                     .filter(v -> v.getNom().equals(name)).findFirst());
@@ -53,6 +57,14 @@ public class VilleControlleur {
         if (result.hasErrors()) {
             throw new Exception(result.getAllErrors().toString());
         }
+        updateList();
+        if (villes.stream()
+                .anyMatch(v -> v.getNom().equals(ville.getNom())
+                || v.getId().equals(ville.getId())
+                || v.getNbHabitants() == ville.getNbHabitants())
+        ) {
+            return ResponseEntity.badRequest().body("La ville existe déjà");
+        }
         villeService.insertVille(ville);
         return ResponseEntity.ok("La ville a été ajoutée avec succès");
     }
@@ -64,13 +76,26 @@ public class VilleControlleur {
         if (result.hasErrors()) {
             throw new Exception(result.getAllErrors().toString());
         }
+        updateList();
+        if (villes.stream()
+                .anyMatch(v -> v.getNom().equals(ville.getNom())
+                        || v.getId().equals(ville.getId())
+                        || v.getNbHabitants() == ville.getNbHabitants())
+        ) {
+            return ResponseEntity.badRequest().body("La ville existe déjà");
+        }
         villeService.modifierVille(id, ville);
         return ResponseEntity.ok("La ville a été modifiée avec succès");
     }
 
     @DeleteMapping("/id:{id}")
     public ResponseEntity<String> deleteVille(@PathVariable Integer id) {
-
+        updateList();
+        if (villes.stream()
+                .noneMatch(v -> v.getId().equals(id))
+        ) {
+            return ResponseEntity.badRequest().body("La ville n'existe pas");
+        }
         villeService.supprimerVille(id);
         return ResponseEntity.ok("La ville a été supprimée avec succès");
     }

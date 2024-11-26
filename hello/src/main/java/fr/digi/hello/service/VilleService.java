@@ -14,14 +14,14 @@ public class VilleService {
     private final VilleDao villeDao;
     private List<Ville> villes;
 
-    public VilleService(VilleDao villeDao) {
+    public VilleService(VilleDao villeDao, List<Ville> villes) {
         this.villeDao = villeDao;
-        this.villes = villeDao.extractVilles();
+        this.villes = getVilles();
     }
 
     public List<Ville> getVilles(){
-        villes = villeDao.extractVilles();
-        return villes;
+        this.villes = villeDao.extractVilles();
+        return this.villes;
     }
 
     public Ville getVilleById(Integer id){
@@ -56,7 +56,7 @@ public class VilleService {
     public List<Ville> supprimerVille(int idVille) {
         Ville ville = getVilleById(idVille);
         if (ville != null) {
-            getVilles().remove(ville);
+            villes.remove(ville);
             villeDao.supprimerVille(ville);
         }
         return getVilles();

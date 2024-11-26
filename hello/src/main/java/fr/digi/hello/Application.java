@@ -10,11 +10,6 @@ public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-
-//		VilleService villeService = new VilleService();
-//		for (Ville ville : villeService.getVilles()) {
-//			System.out.println(ville.getId());
-//		}
 	}
 
 }

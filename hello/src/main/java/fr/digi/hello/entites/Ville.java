@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "ville")
-public class Ville {
+public class Ville extends Departement{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,11 +16,14 @@ public class Ville {
     private String nom;
     @Min(0)
     private int nbHabitants;
+    @ManyToOne
+    private Departement departement;
 
     public Ville() {
     }
 
     public Ville(String nom, int nbHabitants) {
+        super();
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }

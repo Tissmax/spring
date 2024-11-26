@@ -14,6 +14,7 @@ public class VilleDao {
     @PersistenceContext
     private EntityManager em;
 
+    @Transactional
     public List<Ville> extractVilles(){
         return em.createQuery("SELECT v FROM Ville v", Ville.class).getResultList();
     }
