@@ -6,10 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
-public class Ville extends Departement{
+public class Ville {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
     @Size(min = 3, max = 50)
@@ -17,13 +16,12 @@ public class Ville extends Departement{
     @Min(0)
     private int nbHabitants;
     @ManyToOne
-    private Departement departement;
+    Departement departement;
 
     public Ville() {
     }
 
     public Ville(String nom, int nbHabitants) {
-        super();
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }
@@ -36,6 +34,14 @@ public class Ville extends Departement{
         return nbHabitants;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public void setNom(String nom) {
         this.nom = nom;
     }
@@ -44,8 +50,11 @@ public class Ville extends Departement{
         this.nbHabitants = nbHabitants;
     }
 
-    public Integer getId() {
-        return id;
+    public void setDepartement(Departement departement) {
+        if (this.departement != null) {
+            this.departement.getVilles().remove(this);
+        }
+        this.departement = departement;
     }
 
 

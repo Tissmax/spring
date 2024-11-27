@@ -24,7 +24,7 @@ public class DepartementControlleur {
         return departementService.getDepartements();
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<String> getDepartements() {
         if (list().isEmpty()) {
             return ResponseEntity.badRequest().body("Aucun département n'a été trouvé");
@@ -64,7 +64,12 @@ public class DepartementControlleur {
     }
 
     @GetMapping
-    public ResponseEntity<String> getDepartementsLesPlusGrands() {
-
+    public ResponseEntity<String> getDepartementsLesPlusGrands(@RequestParam String nomDept,
+                                                               @RequestParam int min,
+                                                               @RequestParam int max) {
+        if (departementService.getVilleRange(nomDept,min,max).isEmpty()) {
+            return ResponseEntity.badRequest().body("Aucun département n'a été trouvé");
+        }
+        return ResponseEntity.ok(departementService.getVilleRange(nomDept,min,max).toString());
     }
 }

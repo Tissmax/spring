@@ -2,6 +2,7 @@ package fr.digi.hello.service;
 
 import fr.digi.hello.dao.DepartementDAO;
 import fr.digi.hello.entites.Departement;
+import fr.digi.hello.entites.Ville;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,5 +66,12 @@ public class DepartementService {
         departements.add(new Departement(departement.getNom(), departement.getNumero()));
         departementDao.insertDepartement(departement);
         return getDepartements();
+    }
+
+    public List<Ville> getVilleRange(String nomDept, int min, int max) {
+        if (getDepartementByNom(nomDept) == null) {
+            return null;
+        }
+        return departementDao.extractVillesRange(nomDept, min, max);
     }
 }

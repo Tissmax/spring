@@ -1,7 +1,9 @@
 package fr.digi.hello.entites;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,12 +11,12 @@ import java.util.Objects;
 public class Departement {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String nomDept;
     private String numero;
-    @OneToMany
-    private List<Ville> villes;
+    private String nomDept;
+    @JsonIgnore
+    @OneToMany(mappedBy = "departement")
+    List<Ville> villes = new ArrayList<>();
 
     public Departement() {
     }
@@ -66,5 +68,9 @@ public class Departement {
 
     public void setNumero(String numero) {
         this.numero = numero;
+    }
+
+    protected List<Ville> getVilles() {
+        return villes;
     }
 }
