@@ -24,29 +24,28 @@ public class DepartementControlleur {
         return departementService.getDepartements();
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<String> getDepartements() {
+    @GetMapping
+    public ResponseEntity<Object> getDepartements() {
         if (list().isEmpty()) {
             return ResponseEntity.badRequest().body("Aucun département n'a été trouvé");
         }
-        return ResponseEntity.ok(list().toString());
+        return ResponseEntity.ok(list());
     }
 
     @PutMapping
-    public ResponseEntity<String> updateDepartements(int idDepartement, Departement departementModifie) {
+    public ResponseEntity<String> updateDepartements(@RequestParam int id,
+                                                     @RequestBody Departement departementModifie) {
         if (list().stream().anyMatch
-                (d -> d.getId().equals(idDepartement))) {
-            departementService.modifierDepartement(idDepartement, departementModifie);
+                (d -> d.getId().equals(id))) {
+            departementService.modifierDepartement(id, departementModifie);
             return ResponseEntity.ok("Le département a été modifié");
         }
         return ResponseEntity.badRequest().body("Le département n'existe pas");
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteDepartement(int idDepartement) {
-        if (list().stream().anyMatch
-                (d -> d.getId().equals(idDepartement))) {
-            departementService.supprimerDepartement(idDepartement);
+    public ResponseEntity<String> deleteDepartement(@RequestParam int id) {
+        if (departementService.supprimerDepartement(id)) {
             return ResponseEntity.ok("Le département a été supprimé");
         }
         return ResponseEntity.badRequest().body("Le département n'existe pas");
@@ -55,21 +54,11 @@ public class DepartementControlleur {
     @PostMapping
     public ResponseEntity<String> addDepartement(@RequestBody Departement departement) {
         if (list().stream().anyMatch
-                (d -> d.getNom().equals(departement.getNom())
+                (d -> d.getNomDept().equals(departement.getNomDept())
                 || d.getNumero().equals(departement.getNumero()))) {
             return ResponseEntity.badRequest().body("Le département existe déjà");
         }
         departementService.insertDepartement(departement);
         return ResponseEntity.ok("Le département a été ajouté");
-    }
-
-    @GetMapping
-    public ResponseEntity<String> getDepartementsLesPlusGrands(@RequestParam String nomDept,
-                                                               @RequestParam int min,
-                                                               @RequestParam int max) {
-        if (departementService.getVilleRange(nomDept,min,max).isEmpty()) {
-            return ResponseEntity.badRequest().body("Aucun département n'a été trouvé");
-        }
-        return ResponseEntity.ok(departementService.getVilleRange(nomDept,min,max).toString());
     }
 }

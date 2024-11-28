@@ -1,6 +1,7 @@
 package fr.digi.hello.entites;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.digi.hello.DTO.DepartementDTO;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ public class Departement {
     private Integer id;
     private String numero;
     private String nomDept;
-    @JsonIgnore
     @OneToMany(mappedBy = "departement")
+    @JsonIgnore
     List<Ville> villes = new ArrayList<>();
 
     public Departement() {
@@ -24,6 +25,14 @@ public class Departement {
     public Departement(String nomDept, String numero) {
         this.nomDept = nomDept;
         this.numero = numero;
+    }
+
+    public DepartementDTO toDTO() {
+        return new DepartementDTO(nomDept,
+                numero,
+                villes.stream()
+                        .map(Ville::getNbHabitants)
+                        .reduce(0, Integer::sum));
     }
 
     @Override
@@ -54,14 +63,6 @@ public class Departement {
         this.id = id;
     }
 
-    public String getNom() {
-        return nomDept;
-    }
-
-    public void setNom(String nom) {
-        this.nomDept = nom;
-    }
-
     public String getNumero() {
         return numero;
     }
@@ -72,5 +73,17 @@ public class Departement {
 
     protected List<Ville> getVilles() {
         return villes;
+    }
+
+    public String getNomDept() {
+        return nomDept;
+    }
+
+    public void setNomDept(String nomDept) {
+        this.nomDept = nomDept;
+    }
+
+    public void setVilles(List<Ville> villes) {
+        this.villes = villes;
     }
 }

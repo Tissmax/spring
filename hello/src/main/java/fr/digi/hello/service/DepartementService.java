@@ -3,75 +3,67 @@ package fr.digi.hello.service;
 import fr.digi.hello.dao.DepartementDAO;
 import fr.digi.hello.entites.Departement;
 import fr.digi.hello.entites.Ville;
+import fr.digi.hello.repository.DepartementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DepartementService {
 
     @Autowired
-    private final DepartementDAO departementDao;
+    private final DepartementRepository departementRepository;
     private List<Departement> departements;
 
-    public DepartementService(DepartementDAO departementDao) {
-        this.departementDao = departementDao;
+    public DepartementService(DepartementRepository departementRepository) {
+        this.departementRepository = departementRepository;
         this.departements = getDepartements();
     }
 
     public List<Departement> getDepartements() {
-        return this.departements = departementDao.extractDepartements();
+        return this.departements = departementRepository.findAll();
     }
 
-    private Departement getDepartementById(int idDepartement) {
+    private Optional<Departement> getDepartementById(int idDepartement) {
         return departements.stream()
                 .filter(d -> d.getId().equals(idDepartement))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
-    private Departement getDepartementByNom(String nom) {
+    private Optional<Departement> getDepartementByNom(String nom) {
         return departements.stream()
-                .filter(d -> d.getNom().equals(nom))
-                .findFirst()
-                .orElse(null);
+                .filter(d -> d.getNomDept().equals(nom))
+                .findFirst();
     }
 
-    public List<Departement> supprimerDepartement(int idDepartement) {
-        Departement departement = getDepartementById(idDepartement);
-        if (departement != null) {
-            departements.remove(departement);
-            departementDao.supprimerDepartement(departement);
-        }
-        return getDepartements();
+    public boolean supprimerDepartement(int idDepartement) {
+        Optional<Departement> departement = getDepartementById(idDepartement);
+        boolean departementExists = departement.isPresent();
+        departement.ifPresent(departementRepository::delete);
+        getDepartements();
+        return departementExists;
     }
 
-    public List<Departement> modifierDepartement(int idDepartement, Departement departementModifie) {
-        Departement departement = getDepartementById(idDepartement);
-        if (departement != null) {
-            departement.setNom(departementModifie.getNom());
-            departement.setNumero(departementModifie.getNumero());
-            departementDao.modifierDepartement(departement);
-        }
-        return getDepartements();
+    public void modifierDepartement(int idDepartement, Departement departementModifie) {
+        Optional<Departement> departement = getDepartementById(idDepartement);
+        departement.ifPresent(d -> {
+            d.setNomDept(departementModifie.getNomDept());
+            d.setNumero(departementModifie.getNumero());
+            departementRepository.save(d);
+        });
+        getDepartements();
     }
 
-    public List<Departement> insertDepartement(Departement departement) {
+    public void insertDepartement(Departement departement) {
         if (departements.stream()
-                .anyMatch(d -> d.getNom().equals(departement.getNom()))
+                .anyMatch(d -> d.getNomDept().equals(departement.getNomDept()))
         ) {
-            return getDepartements();
+            return;
         }
-        departements.add(new Departement(departement.getNom(), departement.getNumero()));
-        departementDao.insertDepartement(departement);
-        return getDepartements();
-    }
-
-    public List<Ville> getVilleRange(String nomDept, int min, int max) {
-        if (getDepartementByNom(nomDept) == null) {
-            return null;
-        }
-        return departementDao.extractVillesRange(nomDept, min, max);
+        departements.add(new Departement(departement.getNomDept(), departement.getNumero()));
+        departementRepository.save(departement);
+        getDepartements();
     }
 }

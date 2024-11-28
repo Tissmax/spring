@@ -1,5 +1,6 @@
 package fr.digi.hello.entites;
 
+import fr.digi.hello.DTO.VilleDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -57,6 +58,12 @@ public class Ville {
         this.departement = departement;
     }
 
+    public VilleDTO toRecord() {
+    return new VilleDTO(nbHabitants,
+            nom,
+            departement.getNomDept(),
+            departement.getNumero());
+    }
 
     @Override
     public String toString() {
