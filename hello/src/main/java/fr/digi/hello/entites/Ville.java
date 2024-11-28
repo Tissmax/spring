@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 public class Ville {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
     @Size(min = 3, max = 50)

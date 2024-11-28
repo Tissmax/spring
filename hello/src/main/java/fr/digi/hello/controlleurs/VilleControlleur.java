@@ -30,15 +30,15 @@ public class VilleControlleur {
         return ResponseEntity.ok(villeService.getVilles());
     }
 
-    @GetMapping(value = "/id:{id}")
+    @GetMapping(value = "/id={id}")
     public ResponseEntity<Object> getVillesById(@PathVariable Integer id) {
-        if (villeService.getVilleById(id) != null) {
+        if (villeService.getVilleById(id).isPresent()) {
             return ResponseEntity.ok(villeService.getVilleById(id));
         }
         return ResponseEntity.badRequest().body("La ville n'existe pas");
     }
 
-    @GetMapping("/nom:{name}")
+    @GetMapping("/nom={name}")
     public ResponseEntity<Object> getVillesByName(@PathVariable String name) {
         if (villeService.getVilleByNom(name) != null) {
             return ResponseEntity.ok(villeService.getVilles().stream()
@@ -52,7 +52,8 @@ public class VilleControlleur {
     }
     @GetMapping("/1")
     public ResponseEntity<Object> getVillesByDepartement(@RequestParam String nomDept,
-                                                         @RequestParam Pageable limit) {
+                                                         @RequestParam int max) {
+        Pageable limit = PageRequest.of(0, max);
         if (villeService.getVillesByDepartement(nomDept, limit).isEmpty()) {
             return ResponseEntity.badRequest().body("Il n'y as pas de ville avec ce nom");
         }

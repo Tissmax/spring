@@ -1,16 +1,16 @@
 package fr.digi.hello.service;
 
-import fr.digi.hello.dao.VilleDao;
 import fr.digi.hello.entites.Ville;
 import fr.digi.hello.repository.VilleRepository;
-import org.hibernate.query.spi.Limit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VilleService {
@@ -24,17 +24,16 @@ public class VilleService {
     }
 
     public Page<Ville> getVillesPage(int page, int size) {
-        Pageable limit = PageRequest.of(page, size);
-        return villeRepository.findAll(limit);
+        Pageable pageable = PageRequest.of(page, size);
+        return villeRepository.findAll(pageable);
     }
 
     public List<Ville> getVilles(){
-        return villeRepository.findAll();
+        return new ArrayList<>(villeRepository.findAll());
     }
 
-    public Ville getVilleById(Integer id){
-        getVilles();
-        return getVillesPage(0, villes.size()).stream().toList().get(id);
+    public Optional<Ville> getVilleById(Integer id){
+        return villeRepository.findById(id);
     }
 
     public List<Ville> getVilleByNom(String nom){
@@ -80,21 +79,21 @@ public class VilleService {
     }
 
     public List<Ville> modifierVille(int idVille, Ville villeModifiee) {
-        Ville ville = getVilleById(idVille);
-        if (ville != null) {
-            ville.setNom(villeModifiee.getNom());
-            ville.setNbHabitants(villeModifiee.getNbHabitants());
-            villeRepository.save(ville);
+        Optional<Ville> ville = getVilleById(idVille);
+        if (ville.isPresent()) {
+            ville.get().setNom(villeModifiee.getNom());
+            ville.get().setNbHabitants(villeModifiee.getNbHabitants());
+            villeRepository.save(ville.get());
             return getVilles().stream().toList();
         }
         return getVilles().stream().toList();
     }
 
     public List<Ville> supprimerVille(int idVille) {
-        Ville ville = getVilleById(idVille);
-        if (ville != null) {
-            villes.remove(ville);
-            villeRepository.delete(ville);
+        Optional<Ville> ville = getVilleById(idVille);
+        if (ville.isPresent()) {
+            villes.remove(ville.get());
+            villeRepository.delete(ville.get());
             return getVilles().stream().toList();
         }
         return getVilles().stream().toList();
