@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface VilleRepository extends JpaRepository<Ville, Integer> {
     List<Ville> findAllByNom(String nom);
+    Ville findVilleByNom(String nom);
     List<Ville> findByNbHabitantsGreaterThan(int nbHabitants);
     List<Ville> findByNbHabitantsLessThanAndNbHabitantsGreaterThan(@Min(0) int min, @Min(0) int max);
     List<Ville> findVillesByDepartement_NomDeptAndNbHabitantsGreaterThan(String nomDept, @Min(0) int min);

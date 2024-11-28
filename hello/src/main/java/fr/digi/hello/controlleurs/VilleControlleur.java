@@ -1,5 +1,6 @@
 package fr.digi.hello.controlleurs;
 
+import fr.digi.hello.DTO.VilleDTO;
 import fr.digi.hello.entites.Ville;
 import fr.digi.hello.service.VilleService;
 import jakarta.validation.Valid;
@@ -42,7 +43,7 @@ public class VilleControlleur {
     public ResponseEntity<Object> getVillesByName(@PathVariable String name) {
         if (villeService.getVilleByNom(name) != null) {
             return ResponseEntity.ok(villeService.getVilles().stream()
-                    .filter(v -> v.getNom().equals(name)).findFirst());
+                    .filter(v -> v.nom().equals(name)).findFirst());
         }
         return ResponseEntity.badRequest().body("La ville n'existe pas");
     }
@@ -103,16 +104,9 @@ public class VilleControlleur {
         return ResponseEntity.ok(villeService.getVilleBydepartementWithLimit(nomDept, pageable));
     }
     @PostMapping
-    public ResponseEntity<String> addVille(@Valid @RequestBody Ville ville,
-                                           BindingResult result) throws Exception {
-        if (result.hasErrors()) {
-            throw new Exception(result.getAllErrors().toString());
-        }
-        if (villeService.getVilles().stream()
-                .anyMatch(v -> v.getNom().equals(ville.getNom())
-                || v.getId().equals(ville.getId())
-                || v.getNbHabitants() == ville.getNbHabitants())
-        ) {
+    public ResponseEntity<String> addVille(@Valid @RequestBody Ville ville){
+
+        if (villeService.insertVille(ville)) {
             return ResponseEntity.badRequest().body("La ville existe déjà");
         }
         villeService.insertVille(ville);
@@ -121,30 +115,21 @@ public class VilleControlleur {
 
     @PutMapping("/id:{id}")
     public ResponseEntity<String> updateVille(@Valid @RequestBody Ville ville,
-                                              @PathVariable Integer id,
-                                              BindingResult result) throws Exception {
-        if (result.hasErrors()) {
-            throw new Exception(result.getAllErrors().toString());
-        }
-        if (villeService.getVilles().stream()
-                .anyMatch(v -> v.getNom().equals(ville.getNom())
-                        || v.getId().equals(ville.getId())
-                        || v.getNbHabitants() == ville.getNbHabitants())
-        ) {
+                                              @PathVariable Integer id)
+    {
+        if (villeService.modifierVille(id, ville)) {
             return ResponseEntity.badRequest().body("La ville existe déjà");
         }
         villeService.modifierVille(id, ville);
         return ResponseEntity.ok("La ville a été modifiée avec succès");
     }
 
-    @DeleteMapping("/id:{id}")
-    public ResponseEntity<String> deleteVille(@PathVariable Integer id) {
-        if (villeService.getVilles().stream()
-                .noneMatch(v -> v.getId().equals(id))
-        ) {
+    @DeleteMapping("/{nom}")
+    public ResponseEntity<String> deleteVille(@PathVariable String nom) {
+        if (villeService.supprimerVille(nom)){
             return ResponseEntity.badRequest().body("La ville n'existe pas");
         }
-        villeService.supprimerVille(id);
+        villeService.supprimerVille(nom);
         return ResponseEntity.ok("La ville a été supprimée avec succès");
     }
 

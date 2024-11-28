@@ -59,7 +59,7 @@ public class Ville {
         this.departement = departement;
     }
 
-    public VilleDTO toRecord() {
+    public VilleDTO toDto() {
     return new VilleDTO(nbHabitants,
             nom,
             departement.getNomDept(),

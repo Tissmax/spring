@@ -1,5 +1,6 @@
 package fr.digi.hello.service;
 
+import fr.digi.hello.DTO.VilleDTO;
 import fr.digi.hello.entites.Ville;
 import fr.digi.hello.repository.VilleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.Optional;
 public class VilleService {
     @Autowired
     private final VilleRepository villeRepository;
-    private List<Ville> villes;
+    private final List<VilleDTO> villes;
 
     public VilleService(VilleRepository villeRepository) {
         this.villeRepository = villeRepository;
@@ -28,19 +29,24 @@ public class VilleService {
         return villeRepository.findAll(pageable);
     }
 
-    public List<Ville> getVilles(){
-        return new ArrayList<>(villeRepository.findAll());
+    public List<VilleDTO> getVilles(){
+        return villeRepository.findAll()
+                .stream().map(Ville::toDto)
+                .toList();
     }
 
-    public Optional<Ville> getVilleById(Integer id){
-        return villeRepository.findById(id);
+    public Optional<VilleDTO> getVilleById(Integer id){
+        return villeRepository.findById(id)
+                .map(Ville::toDto);
     }
 
-    public List<Ville> getVilleByNom(String nom){
+    public List<VilleDTO> getVilleByNom(String nom){
         if (villeRepository.findAllByNom(nom).isEmpty()) {
             return getVilles().stream().toList();
         }
-        return villeRepository.findAllByNom(nom);
+        return villeRepository.findAllByNom(nom)
+                .stream().map(Ville::toDto)
+                .toList();
     }
 
     public List<Ville> getVillesByDepartement(String nomDept, Pageable limit){
@@ -63,40 +69,41 @@ public class VilleService {
         return villeRepository.findByNbHabitantsGreaterThan(nbHabitants);
     }
 
-    public List<Ville> getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan(int min, int max){
-        return villeRepository.findByNbHabitantsLessThanAndNbHabitantsGreaterThan(min, max);
+    public List<VilleDTO> getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan(int min, int max){
+        return villeRepository.findByNbHabitantsLessThanAndNbHabitantsGreaterThan(min, max)
+                .stream().map(Ville::toDto).toList();
     }
 
-    public List<Ville> insertVille(Ville ville){
+    public boolean insertVille(Ville ville){
         if (villes.stream()
-                .anyMatch(v -> v.getNom().equals(ville.getNom()))
+                .noneMatch(v -> v.nom().equals(ville.getNom()))
         ) {
-            return getVilles().stream().toList();
+            villeRepository.save(ville);
+            return true;
         }
-        villes.add(new Ville(ville.getNom(), ville.getNbHabitants()));
-        villeRepository.save(ville);
-        return getVilles().stream().toList();
+        return false;
     }
 
-    public List<Ville> modifierVille(int idVille, Ville villeModifiee) {
-        Optional<Ville> ville = getVilleById(idVille);
+    public boolean modifierVille(int idVille, Ville villeModifiee) {
+        Optional<Ville> ville = villeRepository.findById(idVille);
         if (ville.isPresent()) {
             ville.get().setNom(villeModifiee.getNom());
             ville.get().setNbHabitants(villeModifiee.getNbHabitants());
             villeRepository.save(ville.get());
-            return getVilles().stream().toList();
+            getVilles();
+            return true;
         }
-        return getVilles().stream().toList();
+        return false;
     }
 
-    public List<Ville> supprimerVille(int idVille) {
-        Optional<Ville> ville = getVilleById(idVille);
+    public boolean supprimerVille(String nom) {
+        Optional<Ville> ville = Optional.ofNullable(villeRepository.findVilleByNom(nom));
         if (ville.isPresent()) {
-            villes.remove(ville.get());
             villeRepository.delete(ville.get());
-            return getVilles().stream().toList();
+            getVilles();
+            return true;
         }
-        return getVilles().stream().toList();
+        return false;
     }
 
 
