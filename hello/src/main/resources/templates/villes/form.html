@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <a href="/">Retour</a>
+    <h1>Formulaire de création d'une ville</h1>
+    <form th:action="@{/new}" th:object="${ville}" method="post">
+        <label for="nom">Nom</label>
+        <input type="text" id="nom" name="nom" placeholder="Nom de la ville" th:field="*{nom}">
+      <br/>
+        <label for="nbHabitants">Nombre d'habitants</label>
+        <input type="number" id="nbHabitants" name="nbHabitants" placeholder="Nombre d'habitants" th:field="*{nbHabitants}" required>
+      <br/>
+        <label for="departement">Département</label>
+        <select th:field="*{departement}">
+          <option th:each="dept: ${departements}"
+                  th:value="${dept}"
+                  th:text="${dept.numero} + ' - ' + ${dept.nomDept}"
+                  id="departement">
+          </option>
+        </select>
+      <br/>
+        <button type="submit">Créer</button>
+    </form>
+</body>
+</html>

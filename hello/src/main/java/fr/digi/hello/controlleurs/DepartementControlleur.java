@@ -1,12 +1,21 @@
 package fr.digi.hello.controlleurs;
 
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import fr.digi.hello.entites.Departement;
+import fr.digi.hello.exeptions.VilleExeption;
 import fr.digi.hello.service.DepartementService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.util.List;
 
 @RestController
@@ -34,7 +43,7 @@ public class DepartementControlleur {
 
     @PutMapping
     public ResponseEntity<String> updateDepartements(@RequestParam int id,
-                                                     @RequestBody Departement departementModifie) {
+                                                     @Valid @RequestBody Departement departementModifie) {
         if (list().stream().anyMatch
                 (d -> d.getId().equals(id))) {
             departementService.modifierDepartement(id, departementModifie);
@@ -52,7 +61,7 @@ public class DepartementControlleur {
     }
 
     @PostMapping
-    public ResponseEntity<String> addDepartement(@RequestBody Departement departement) {
+    public ResponseEntity<String> addDepartement(@Valid @RequestBody Departement departement) {
         if (list().stream().anyMatch
                 (d -> d.getNomDept().equals(departement.getNomDept())
                 || d.getNumero().equals(departement.getNumero()))) {
@@ -61,4 +70,13 @@ public class DepartementControlleur {
         departementService.insertDepartement(departement);
         return ResponseEntity.ok("Le département a été ajouté");
     }
+
+    @GetMapping("/pdf={code}")
+    public void exportVillesPDF(@PathVariable String code,
+                                HttpServletResponse response) throws DocumentException, IOException {
+        response.setHeader("Content-Disposition", "attachment; filename=\"villes.pdf\"");
+
+        departementService.exportVillesPDF(code, response);
+    }
+
 }

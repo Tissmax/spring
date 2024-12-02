@@ -1,8 +1,7 @@
 package fr.digi.hello;
 
-import fr.digi.hello.entites.Ville;
-import fr.digi.hello.service.VilleService;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication

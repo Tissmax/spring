@@ -1,19 +1,24 @@
 package fr.digi.hello.controlleurs;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import fr.digi.hello.DTO.VilleDTO;
 import fr.digi.hello.entites.Ville;
+import fr.digi.hello.exeptions.VilleExeption;
 import fr.digi.hello.service.VilleService;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/villes")
@@ -27,12 +32,12 @@ public class VilleControlleur {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getVilles() {
+    public ResponseEntity<Object> getVilles() throws VilleExeption {
         return ResponseEntity.ok(villeService.getVilles());
     }
 
     @GetMapping(value = "/id={id}")
-    public ResponseEntity<Object> getVillesById(@PathVariable Integer id) {
+    public ResponseEntity<Object> getVillesById(@PathVariable Integer id) throws VilleExeption {
         if (villeService.getVilleById(id).isPresent()) {
             return ResponseEntity.ok(villeService.getVilleById(id));
         }
@@ -40,12 +45,8 @@ public class VilleControlleur {
     }
 
     @GetMapping("/nom={name}")
-    public ResponseEntity<Object> getVillesByName(@PathVariable String name) {
-        if (villeService.getVilleByNom(name) != null) {
-            return ResponseEntity.ok(villeService.getVilles().stream()
-                    .filter(v -> v.nom().equals(name)).findFirst());
-        }
-        return ResponseEntity.badRequest().body("La ville n'existe pas");
+    public Optional<VilleDTO> getVillesByName(@PathVariable String name) throws VilleExeption {
+        return Optional.ofNullable(villeService.getVilleByNom(name));
     }
     @GetMapping("/pagination")
     public Page<Ville> getVillesPage(@RequestParam int page, @RequestParam int size) {
@@ -77,8 +78,8 @@ public class VilleControlleur {
         }
         return ResponseEntity.ok(villeService.getVillesByDepartementAndNbHabitantsBetween(nomDept, min, max));
     }
-    @GetMapping("/{nbHabitants}")
-    public ResponseEntity<Object> getVillesByNbHabitantsGreaterThan(@RequestParam @PathVariable int nbHabitants) {
+    @GetMapping("/moreThan=")
+    public ResponseEntity<Object> getVillesByNbHabitantsGreaterThan(@RequestParam int nbHabitants) {
         if (villeService.getVillesByNbHabitantsGreaterThan(nbHabitants).isEmpty()) {
             return ResponseEntity.badRequest().body("La vile demander n'existe pas");
         }
@@ -86,15 +87,15 @@ public class VilleControlleur {
     }
 
     @GetMapping("/{min}/{max}")
-    public ResponseEntity<Object> getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan(@RequestParam @PathVariable int min,
-                                                                                          @RequestParam @PathVariable int max) {
+    public ResponseEntity<Object> getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan( @PathVariable int min,
+                                                                                           @PathVariable int max) {
         if (villeService.getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan(min, max).isEmpty()) {
             return ResponseEntity.badRequest().body("La ville demander n'existe pas");
         }
         return ResponseEntity.ok(villeService.getVillesByNbHabitantsLessThanAndNbHabitantsGreaterThan(min, max));
     }
 
-    @GetMapping("/departement/{nomDept}")
+    @GetMapping("/departement={nomDept}&limit={limit}")
     public ResponseEntity<Object> getVilleBydepartementWithLimit(@RequestParam String nomDept,
                                                                  @RequestParam int limit) {
         Pageable pageable = PageRequest.of(0, limit);
@@ -103,20 +104,29 @@ public class VilleControlleur {
         }
         return ResponseEntity.ok(villeService.getVilleBydepartementWithLimit(nomDept, pageable));
     }
-    @PostMapping
-    public ResponseEntity<String> addVille(@Valid @RequestBody Ville ville){
 
-        if (villeService.insertVille(ville)) {
+    @GetMapping("/nb-habitants>{min}")
+    public ResponseEntity<Object> exportVillesCSV(@PathVariable int min,
+                                                  HttpServletResponse  response) throws Exception {
+        final String FILE_NAME = "villes.csv";
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; file='" + FILE_NAME + "'");
+        return ResponseEntity.ok(villeService.exportVillesCSV(min));
+    }
+
+    @PostMapping
+    public ResponseEntity<String> addVille(@Valid @RequestBody VilleDTO ville){
+
+        if (villeService.insertVille(ville.toBean())) {
             return ResponseEntity.badRequest().body("La ville existe déjà");
         }
-        villeService.insertVille(ville);
+        villeService.insertVille(ville.toBean());
         return ResponseEntity.ok("La ville a été ajoutée avec succès");
     }
 
-    @PutMapping("/id:{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateVille(@Valid @RequestBody Ville ville,
-                                              @PathVariable Integer id)
-    {
+                                              @PathVariable Integer id) throws VilleExeption {
         if (villeService.modifierVille(id, ville)) {
             return ResponseEntity.badRequest().body("La ville existe déjà");
         }
@@ -125,7 +135,7 @@ public class VilleControlleur {
     }
 
     @DeleteMapping("/{nom}")
-    public ResponseEntity<String> deleteVille(@PathVariable String nom) {
+    public ResponseEntity<String> deleteVille(@PathVariable String nom) throws VilleExeption {
         if (villeService.supprimerVille(nom)){
             return ResponseEntity.badRequest().body("La ville n'existe pas");
         }

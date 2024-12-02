@@ -5,6 +5,7 @@ import fr.digi.hello.entites.Ville;
 
 public record VilleDTO(int nbHabitants, String nom, String nomDept, String numero) {
 
+
     public Ville toBean() {
         Ville ville = new Ville();
         ville.setNom(nom);

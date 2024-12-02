@@ -3,6 +3,8 @@ package fr.digi.hello.entites;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.digi.hello.DTO.DepartementDTO;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +14,12 @@ import java.util.Objects;
 public class Departement {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Size(min = 2, max = 3)
     private String numero;
+    @Size(min = 2)
+    @NotEmpty
     private String nomDept;
     @OneToMany(mappedBy = "departement")
     @JsonIgnore
@@ -25,14 +31,6 @@ public class Departement {
     public Departement(String nomDept, String numero) {
         this.nomDept = nomDept;
         this.numero = numero;
-    }
-
-    public DepartementDTO toDTO() {
-        return new DepartementDTO(nomDept,
-                numero,
-                villes.stream()
-                        .map(Ville::getNbHabitants)
-                        .reduce(0, Integer::sum));
     }
 
     @Override
@@ -71,7 +69,7 @@ public class Departement {
         this.numero = numero;
     }
 
-    protected List<Ville> getVilles() {
+    public List<Ville> getVilles() {
         return villes;
     }
 

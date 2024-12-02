@@ -13,9 +13,9 @@ public class Ville {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
-    @Size(min = 3, max = 50)
+    @Size(min = 2, max = 50)
     private String nom;
-    @Min(0)
+    @Min(10)
     private int nbHabitants;
     @ManyToOne
     Departement departement;
@@ -26,6 +26,12 @@ public class Ville {
     public Ville(String nom, int nbHabitants) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
+    }
+
+    public Ville(String nom, int nbHabitants, Departement departement) {
+        this.nom = nom;
+        this.nbHabitants = nbHabitants;
+        this.departement = departement;
     }
 
     public String getNom() {
@@ -74,4 +80,7 @@ public class Ville {
                 '}';
     }
 
+    public Departement getDepartement() {
+        return departement;
+    }
 }

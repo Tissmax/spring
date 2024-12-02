@@ -1,25 +1,41 @@
 package fr.digi.hello.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.digi.hello.DTO.NomDeptDTO;
 import fr.digi.hello.DTO.VilleDTO;
+import fr.digi.hello.TraitementFichierApplication;
 import fr.digi.hello.entites.Ville;
+import fr.digi.hello.exeptions.VilleExeption;
+import fr.digi.hello.mapper.VilleMapper;
+import fr.digi.hello.repository.DepartementRepository;
 import fr.digi.hello.repository.VilleRepository;
+import io.swagger.v3.core.util.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class VilleService {
+
     @Autowired
     private final VilleRepository villeRepository;
     private final List<VilleDTO> villes;
+    @Autowired
+    private DepartementRepository departementRepository;
+    @Autowired
+    WebClient webClient;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    public VilleService(VilleRepository villeRepository) {
+    public VilleService(VilleRepository villeRepository) throws VilleExeption {
         this.villeRepository = villeRepository;
         this.villes = getVilles();
     }
@@ -29,24 +45,30 @@ public class VilleService {
         return villeRepository.findAll(pageable);
     }
 
-    public List<VilleDTO> getVilles(){
-        return villeRepository.findAll()
-                .stream().map(Ville::toDto)
-                .toList();
-    }
-
-    public Optional<VilleDTO> getVilleById(Integer id){
-        return villeRepository.findById(id)
-                .map(Ville::toDto);
-    }
-
-    public List<VilleDTO> getVilleByNom(String nom){
-        if (villeRepository.findAllByNom(nom).isEmpty()) {
-            return getVilles().stream().toList();
+    public List<VilleDTO> getVilles() throws VilleExeption {
+        try {
+            System.out.println("a");
+            return villeRepository.findAll()
+                    .stream().map(VilleMapper::toDTO)
+                    .toList();
+        } catch (Exception e) {
+            throw new VilleExeption("Il n'y a pas de villes dans la base de données");
         }
+    }
+
+    public Optional<VilleDTO> getVilleById(Integer id) throws VilleExeption {
+        try {
+            return villeRepository.findById(id)
+                    .map(Ville::toDto);
+        } catch (Exception e) {
+            throw new VilleExeption("Il n'y a pas de ville avec l'id: " + id);
+        }
+    }
+
+    public VilleDTO getVilleByNom(String nom) throws VilleExeption {
         return villeRepository.findAllByNom(nom)
                 .stream().map(Ville::toDto)
-                .toList();
+                .findFirst().orElseThrow(() -> new VilleExeption("Il n'y a pas de ville avec le nom: " + nom));
     }
 
     public List<Ville> getVillesByDepartement(String nomDept, Pageable limit){
@@ -78,13 +100,14 @@ public class VilleService {
         if (villes.stream()
                 .noneMatch(v -> v.nom().equals(ville.getNom()))
         ) {
+            departementRepository.save(ville.getDepartement());
             villeRepository.save(ville);
             return true;
         }
         return false;
     }
 
-    public boolean modifierVille(int idVille, Ville villeModifiee) {
+    public boolean modifierVille(int idVille, Ville villeModifiee) throws VilleExeption {
         Optional<Ville> ville = villeRepository.findById(idVille);
         if (ville.isPresent()) {
             ville.get().setNom(villeModifiee.getNom());
@@ -96,9 +119,10 @@ public class VilleService {
         return false;
     }
 
-    public boolean supprimerVille(String nom) {
+    public boolean supprimerVille(String nom) throws VilleExeption {
         Optional<Ville> ville = Optional.ofNullable(villeRepository.findVilleByNom(nom));
         if (ville.isPresent()) {
+            System.out.println("Ville supprimée");
             villeRepository.delete(ville.get());
             getVilles();
             return true;
@@ -107,4 +131,38 @@ public class VilleService {
     }
 
 
+    public String exportVillesCSV(int min) throws Exception {
+//        TraitementFichierApplication t = new TraitementFichierApplication();
+//        t.run();
+//        return t.exportVillesCSV(min);
+        StringBuilder sb = new StringBuilder();
+        String HEADER = "Nom;Nb habitants;Nom département;Numéro département\n";
+        sb.append(HEADER);
+        List<VilleDTO> dtos = villeRepository.findByNbHabitantsGreaterThan(min).stream()
+                .map(Ville::toDto)
+                .toList();
+        return dtos.stream()
+                .map(v -> {
+                    try {
+                        return v.nom() + ";" + v.nbHabitants() + ";" + nomDepartement(v.numero()).nom() + ";" + v.numero() + "\n";
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(
+                        () -> sb,
+                        StringBuilder::append,
+                        StringBuilder::append
+                ).toString();
+    }
+
+    public NomDeptDTO nomDepartement(String codeRegion) throws JsonProcessingException {
+        String body = webClient.get()
+                .uri("/{codeRegion}?fields=nom", codeRegion)
+                .retrieve()
+                .bodyToFlux(String.class)
+                .blockFirst();
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(body , NomDeptDTO.class);
+    }
 }
