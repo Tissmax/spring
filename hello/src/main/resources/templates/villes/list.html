@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Villes</title>
+</head>
+<body>
+<a href="/">Retour</a>
+  <h1>Liste des villes</h1>
+    <table>
+        <tr>
+          <th>Nom</th>
+          <th>Population</th>
+          <th>Departement</th>
+        </tr>
+        <tr th:each="ville: ${villes}">
+            <td th:text="${ville.nom}"></td>
+            <td th:text="${ville.nbHabitants}"></td>
+            <td th:text="${ville.nomDept}"></td>
+            <td> <a th:href="@{/delete/ville/{nom}(nom=${ville.nom})}">Supprimer</a></td>
+        </tr>
+    </table>
+</body>
+</html>

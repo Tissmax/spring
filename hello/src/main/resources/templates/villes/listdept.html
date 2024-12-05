@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+  <a href="/">Retour</a>
+    <h1>Liste des départements</h1>
+    <table>
+        <tr>
+          <th>Nom</th>
+          <th>Numero</th>
+          <th>ID</th>
+        </tr>
+        <tr th:each="depts: ${dept}">
+            <td th:text="${depts.nomDept}"></td>
+            <td th:text="${depts.numero}"></td>
+            <td th:text="${depts.id}"></td>
+            <td> <a th:href="@{/delete/dept/{id}(id=${depts.id})}">Supprimer</a></td>
+        </tr>
+    </table>
+</body>
+</html>

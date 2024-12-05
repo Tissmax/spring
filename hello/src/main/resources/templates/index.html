@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil</title>
+</head>
+<body>
+
+<h1>Bonjour et bienvenue sur cette application</h1>
+    <a href="/list-villes" >Liste des Villes</a>
+<br/>
+    <a href="/list-dept" >Liste des départements</a>
+<h3>Profil</h3>
+<ul>
+    <li th:text="'Username :' + ${authentication.getName()}">Username</li>
+    <li th:text="'Authorities :' + ${authentication.getAuthorities()}">Authorities</li>
+</ul>
+</body>
+</html>
